@@ -1,2 +1,2 @@
 # HCPMC
-HardConvexParticleMonteCarlo
+Hard Convex Particle Monte Carlo
