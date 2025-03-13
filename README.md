@@ -8,16 +8,4 @@ hoomd-blue >= 5.0.0
 
 gsd
 
-numpy
-
-matplotlib
-
-pandas
-
-scipy
-
-datetime
-
-shutil
-
 signac
