@@ -59,18 +59,26 @@ class Pressure:
             duration = datetime.datetime.now() - start_time
             formatted_duration = str(duration).split(".")[0]
 
-            print(f"{formatted_duration}  Equilibrating... ({sim.timestep - time0}/{n_equili + n_sampling})", flush=True, end="  ")
+            print(f"{formatted_duration}  Equilibrating...({sim.timestep - time0}/{n_equili + n_sampling})", flush=True)
 
+        gsd_writer = hoomd.write.GSD(
+            filename="equilibrium.gsd",
+            trigger=hoomd.trigger.Periodic(int(5e3)),
+            mode="ab",
+        )
+        sim.operations.writers.append(gsd_writer)
         sdf = hoomd.hpmc.compute.SDF(0.02, 1e-4)
         sim.operations.computes.append(sdf)
         for i in range(n_sampling):
             sim.run(10)
             self.pressure.append(sdf.betaP)
-            print(sdf.betaP)
+            duration = datetime.datetime.now() - start_time
+            formatted_duration = str(duration).split(".")[0]
+            print(f"{formatted_duration}  Sampling...({sim.timestep - time0}/{n_equili + n_sampling}) {sdf.betaP}", flush=True)
 
     def get_pressure(self):
         """Get the pressure of a solid composed of hard polyhedron particles."""
-        return f'{np.mean(self.pressure)} +/- {np.std(self.pressure)/np.sqrt(len(self.pressure))}'
+        return f"{np.mean(self.pressure)} +/- {np.std(self.pressure) / np.sqrt(len(self.pressure))}"
 
 
 class Harmonic:

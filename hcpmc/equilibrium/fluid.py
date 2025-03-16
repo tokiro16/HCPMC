@@ -59,10 +59,18 @@ class Pressure:
 
         sdf = hoomd.hpmc.compute.SDF(0.02, 1e-4)
         sim.operations.computes.append(sdf)
+        gsd_writer = hoomd.write.GSD(
+            filename="equilibrium.gsd",
+            trigger=hoomd.trigger.Periodic(int(5e3)),
+            mode="ab",
+        )
+        sim.operations.writers.append(gsd_writer)
         for i in range(n_sampling):
             sim.run(10)
             self.pressure.append(sdf.betaP)
-            print(sdf.betaP)
+            duration = datetime.datetime.now() - start_time
+            formatted_duration = str(duration).split(".")[0]
+            print(f"{formatted_duration}  Sampling...({sim.timestep - time0}/{n_equili + n_sampling}) {sdf.betaP}", flush=True)
 
     def get_pressure(self):
         """Get the pressure of a fluid composed of hard polyhedron particles."""
