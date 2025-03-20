@@ -30,7 +30,7 @@ class Pressure:
 
         System will equilibrate for n_equili steps and calculate pressure for n_sampling times.
         """
-        print("Start calculating...")
+        print("Start calculating...",flush=True)
         start_time = datetime.datetime.now()
         sim = hoomd.Simulation(device=hoomd.device.CPU(), seed=seed)
         sim.create_state_from_gsd(self.samplename)
@@ -53,28 +53,32 @@ class Pressure:
         Boxmc.aspect.update({"delta": 0.001, "weight": 1.0})
         Boxmc.shear.update({"weight": 1.0, "delta": (0.001, 0.001, 0.001)})
         sim.operations.updaters.append(Boxmc)
+        sdf = hoomd.hpmc.compute.SDF(0.02, 1e-4)
+        sim.operations.computes.append(sdf)
+        logger = hoomd.logging.Logger()
+        logger.add(mc, quantities=["type_shapes"])
+        logger.add(sdf,quantities=['betaP'])
+        gsd_writer = hoomd.write.GSD(
+            filename="equilibrium.gsd",
+            trigger=hoomd.trigger.Periodic(int(5e3)),
+            mode="xb",
+        )
+        sim.operations.writers.append(gsd_writer)
+
         time0 = sim.timestep
         while sim.timestep - time0 < n_equili:
             sim.run(5000)
             duration = datetime.datetime.now() - start_time
             formatted_duration = str(duration).split(".")[0]
 
-            print(f"{formatted_duration}  Equilibrating...({sim.timestep - time0}/{n_equili + n_sampling})", flush=True)
+            print(f"{formatted_duration}  Equilibrating...({sim.timestep - time0}/{n_equili + n_sampling*10})", flush=True)
 
-        gsd_writer = hoomd.write.GSD(
-            filename="equilibrium.gsd",
-            trigger=hoomd.trigger.Periodic(int(5e3)),
-            mode="ab",
-        )
-        sim.operations.writers.append(gsd_writer)
-        sdf = hoomd.hpmc.compute.SDF(0.02, 1e-4)
-        sim.operations.computes.append(sdf)
         for i in range(n_sampling):
             sim.run(10)
             self.pressure.append(sdf.betaP)
             duration = datetime.datetime.now() - start_time
             formatted_duration = str(duration).split(".")[0]
-            print(f"{formatted_duration}  Sampling...({sim.timestep - time0}/{n_equili + n_sampling}) {sdf.betaP}", flush=True)
+            print(f"{formatted_duration}  Sampling...({sim.timestep - time0}/{n_equili + n_sampling*10}) {sdf.betaP}", flush=True)
 
     def get_pressure(self):
         """Get the pressure of a solid composed of hard polyhedron particles."""
