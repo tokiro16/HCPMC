@@ -24,13 +24,19 @@ class Pressure:
         self.samplename = samplename
         self.particlefactory = factory
         self.pressure = []
+        self.packingfraction = None
 
     def calculate(self, n_equili: int = 100000, n_sampling: int = 10000, seed: int = 12345):
         """Calculate the pressure of a solid composed of hard polyhedron particles.
 
         System will equilibrate for n_equili steps and calculate pressure for n_sampling times.
         """
-        print("Start calculating...",flush=True)
+        with gsd.hoomd.open(self.samplename) as f:
+            N = f[0].particles.N
+            box = f[0].configuration.box
+            V = box[0] * box[1] * box[2]
+            rho = N/V
+        print(f"Start calculating... packing fraction: {rho:.4f}", flush=True)
         start_time = datetime.datetime.now()
         sim = hoomd.Simulation(device=hoomd.device.CPU(), seed=seed)
         sim.create_state_from_gsd(self.samplename)
@@ -57,10 +63,11 @@ class Pressure:
         sim.operations.computes.append(sdf)
         logger = hoomd.logging.Logger()
         logger.add(mc, quantities=["type_shapes"])
-        logger.add(sdf,quantities=['betaP'])
+        logger.add(sdf, quantities=["betaP"])
         gsd_writer = hoomd.write.GSD(
             filename="equilibrium.gsd",
             trigger=hoomd.trigger.Periodic(int(5e3)),
+            logger=logger,
             mode="xb",
         )
         sim.operations.writers.append(gsd_writer)
@@ -71,14 +78,33 @@ class Pressure:
             duration = datetime.datetime.now() - start_time
             formatted_duration = str(duration).split(".")[0]
 
-            print(f"{formatted_duration}  Equilibrating...({sim.timestep - time0}/{n_equili + n_sampling*10})", flush=True)
+            print(f"{formatted_duration}  Equilibrating...({sim.timestep - time0}/{n_equili + n_sampling}) {sdf.betaP}", flush=True)
 
-        for i in range(n_sampling):
-            sim.run(10)
-            self.pressure.append(sdf.betaP)
+        logger2 = hoomd.logging.Logger()
+        logger2.add(sdf, quantities=["betaP"])
+        gsd_writer2 = hoomd.write.GSD(
+            filename="pressure.gsd",
+            trigger=hoomd.trigger.Periodic(1),
+            logger=logger2,
+            dynamic=[],
+            filter=hoomd.filter.Null(),
+            mode="xb",
+        )
+        sim.operations.writers.append(gsd_writer2)
+        while sim.timestep - time0 < n_sampling + n_equili:
+            sim.run(5000)
             duration = datetime.datetime.now() - start_time
             formatted_duration = str(duration).split(".")[0]
-            print(f"{formatted_duration}  Sampling...({sim.timestep - time0}/{n_equili + n_sampling*10}) {sdf.betaP}", flush=True)
+
+            print(f"{formatted_duration} Sampling... ({sim.timestep - time0}/{n_equili + n_sampling}) {sdf.betaP}", flush=True)
+
+        gsd_writer.flush()
+        gsd_writer2.flush()
+        self.packingfraction = sim.state.N_particles / sim.state.box.volume
+        df = pd.DataFrame(gsd.hoomd.read_log("pressure.gsd", scalar_only=True))
+        betaP = df["log/hpmc/compute/SDF/betaP"]
+        self.pressure = betaP.iloc[-n_sampling:]
+        print(f"pressure = {np.mean(self.pressure)} +/- {np.std(self.pressure) / np.sqrt(len(self.pressure))}")
 
     def get_pressure(self):
         """Get the pressure of a solid composed of hard polyhedron particles."""
@@ -156,7 +182,7 @@ class Harmonic:
             duration = datetime.datetime.now() - start_time
             formatted_duration = str(duration).split(".")[0]
 
-            print(f"{formatted_duration}  Calculating dF for k = {self.k}... ({sim.timestep - time0}/{n_equili + n_sampling})", flush=True, end="  ")
+            print(f"{formatted_duration}  Calculating dF for k = {self.k}... ({sim.timestep - time0}/{n_equili + n_sampling})", flush=True)
 
         gsd_writer.flush()
         df = pd.DataFrame(gsd.hoomd.read_log("Harmonic.gsd", scalar_only=True))
