@@ -4,7 +4,7 @@ from hoomd import *
 import numpy as np 
 import time
 
-def naiveTimeAverage(UW, trials_per_force_accept = 200, close_enough_count_max = 3, close_enough_percent = 0.02, time_average = 20):
+def naiveTimeAverage(UW, trials_per_force_accept = 200, close_enough_count_max = 3, close_enough_percent = 0.02, time_average = 20, maxtime = 8):
     """ Standard brute force method with modification on equilibration criteria and when to do force update"""
     time0 = time.time()
     print("\n\nSTEP1: Starting naive time average equilibration routines\n")
@@ -19,7 +19,7 @@ def naiveTimeAverage(UW, trials_per_force_accept = 200, close_enough_count_max =
 
     close_enough_count = 0 
     force_update_number = 0 
-    while(close_enough_count < close_enough_count_max):
+    while(close_enough_count < close_enough_count_max and (time.time()-time0)/3600 < maxtime):
         time1 = time.time()
         print("\nBeginning another new brute force equilibration iteration     ") 
         print(" OrderDifference = " + str(UW.getOrder() - UW.getOrderTarget())) 
