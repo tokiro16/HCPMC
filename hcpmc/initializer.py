@@ -115,7 +115,7 @@ class Densest(Expander):
         frame.particles.N = self.particle_per_cell
         position = []
         for j in range(self.particle_per_cell):
-            pos = [0, 0, 10 * j]
+            pos = [0, 0, 10 * j - self.particle_per_cell//2 * 10]
             position.append(pos)
         frame.particles.position = position
         frame.particles.orientation = [1, 0, 0, 0] * self.particle_per_cell
@@ -131,7 +131,7 @@ class Densest(Expander):
         print("Exit Code:", result.returncode)
         print("Check Status Command:")
         print("cd ", os.getcwd() + self.folder[1:])
-        print("watch -n 1 python project.py status")
+        print("watch -n 1 python3 project.py status")
 
     def analysis(self):
         """Get the densest packing fraction.
