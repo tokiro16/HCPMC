@@ -15,6 +15,9 @@ signac
 """
 
 from . import initializer
+from . import initializer2D
 from . import particlefactory
+from . import particlefactory2D
 from . import equilibrium
 from . import umbrella
+from . import OrderParameter

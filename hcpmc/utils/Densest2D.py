@@ -19,8 +19,8 @@ def compress(job):
         temp = job.path + "/../../dense_temp.gsd"
         sim = hoomd.Simulation(device=hoomd.device.CPU(), seed=job.sp.seed)
         sim.create_state_from_gsd(temp)
-        mc = hoomd.hpmc.integrate.ConvexPolyhedron(default_d=0.1, default_a=0.1)
-        mc.shape["S0"] = dict(vertices=job.sp.mc_vertices)
+        mc = hoomd.hpmc.integrate.ConvexSpheropolygon(default_d=0.1, default_a=0.1)
+        mc.shape["S0"] = dict(vertices=job.sp.mc_vertices,sweep_radius=job.sp.mc_radius)
         sim.operations.integrator = mc
         tune = hoomd.hpmc.tune.MoveSize.scale_solver(
             moves=["a", "d"],

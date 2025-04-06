@@ -34,7 +34,9 @@ class Pressure:
         with gsd.hoomd.open(self.samplename) as f:
             N = f[0].particles.N
             box = f[0].configuration.box
-            V = box[0] * box[1] * box[2]
+            V = box[0] * box[1]
+            if box[2] != 0:
+                V *= box[2]
             rho = N/V
         print(f"Start calculating... packing fraction: {rho:.4f}", flush=True)
         start_time = datetime.datetime.now()

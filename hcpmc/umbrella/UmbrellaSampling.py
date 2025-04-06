@@ -6,6 +6,7 @@ data format: Grossfield, A, “WHAM: an implementation of the weighted histogram
 
 .. invisible-code-block: python
 """
+
 from .. import OrderParameter
 from . import UmbrellaWindow
 from . import UmbrellaEquilibration
@@ -50,9 +51,7 @@ class BiasSampling:
         )
         sim.operations.tuners.append(tune)
         OP = orderparameter
-        UW = UmbrellaWindow.UmbrellaWindow(
-            self.k, self.window, simtrials, f"window_{self.window:.3f}", sim, OP
-        )
+        UW = UmbrellaWindow.UmbrellaWindow(self.k, self.window, simtrials, f"window_{self.window:.3f}", sim, OP)
         # Equilibrate
         time_average = equili_strict
         UmbrellaEquilibration.naiveTimeAverage(UW, time_average=time_average)
@@ -64,3 +63,12 @@ class BiasSampling:
         UW.resetAcceptanceStatistics()
         UW.runUmbrellaTrials(self.SamplingNumber)
         UW.printUmbrellaVariables()
+
+        logger = hoomd.logging.Logger()
+        logger.add(mc, quantities=["type_shapes"])
+        hoomd.write.GSD.write(
+            state=sim.state,
+            filename="force.gsd",
+            logger=logger,
+            mode="xb",
+        )
