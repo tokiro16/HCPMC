@@ -19,6 +19,7 @@ import numpy as np
 import math
 
 
+
 class RoundedSquare:
     """Create an instance of RoundedSquare particle with specified zeta = sigma/(L+sigma) ."""
 
@@ -26,16 +27,16 @@ class RoundedSquare:
         if zeta > 1 or zeta < 0:
             raise ValueError("zeta must be between 0 and 1")
         if zeta == 1:
-            self.shape = coxeter.shapes.ConvexSpheropolygon([[-1e-6, -1e-6], [-1e-6, 1e-6], [1e-6, 1e-6], [1e-6, -1e-6]], radius=1)
+            self.shape = coxeter.shapes.ConvexSpheropolygon([[-1e-6, -1e-6], [1e-6, -1e-6], [1e-6, 1e-6], [-1e-6, 1e-6]], radius=1)
             self.shape.area = 1
         else:
-            self.shape = coxeter.shapes.ConvexSpheropolygon([[-1, -1], [-1, 1], [1, 1], [1, -1]], radius=zeta / (1 - zeta))
+            self.shape = coxeter.shapes.ConvexSpheropolygon([[-1, -1], [1, -1], [1, 1], [-1, 1]], radius=zeta / (1 - zeta))
             self.shape.area = 1
 
     def get_integrator(self):
         """Get the hoomd integrator object."""
         mc = hoomd.hpmc.integrate.ConvexSpheropolygon(default_d=0.1, default_a=0.1)
-        mc.shape["S0"] = dict(vertices=np.array(self.shape.vertices)[:,:2], sweep_radius=self.shape.radius)
+        mc.shape["S0"] = dict(vertices=self.shape.vertices[:, :2].tolist(), sweep_radius=self.shape.radius)
         return mc
 
     def get_symmetries(self):
@@ -54,9 +55,7 @@ class RoundedSquare:
 
     def get_gsd_shape(self):
         """Get the gsd shape object."""
-        return {'type': 'Polygon', 'vertices': self.shape.vertices[:,:2].tolist(), 'rounding_radius': self.shape.radius}
-
-
+        return {"type": "Polygon", "rounding_radius": self.shape.radius, "vertices": self.shape.vertices[:, :2].tolist()}
 
 class RoundedTriangle:
     """Create an instance of RoundedTriangle particle with specified zeta = sigma/(L+sigma) ."""
@@ -74,7 +73,7 @@ class RoundedTriangle:
     def get_integrator(self):
         """Get the hoomd integrator object."""
         mc = hoomd.hpmc.integrate.ConvexSpheropolygon(default_d=0.1, default_a=0.1)
-        mc.shape["S0"] = dict(vertices=self.shape.vertices[:,:2], sweep_radius=self.shape.radius)
+        mc.shape["S0"] = dict(vertices=self.shape.vertices[:, :2], sweep_radius=self.shape.radius)
         return mc
 
     def get_symmetries(self):
@@ -91,7 +90,7 @@ class RoundedTriangle:
 
     def get_gsd_shape(self):
         """Get the gsd shape object."""
-        return {'type': 'Polygon', 'vertices': self.shape.vertices[:,:2].tolist(), 'rounding_radius': self.shape.radius}
+        return {"type": "Polygon", "vertices": self.shape.vertices[:, :2].tolist(), "rounding_radius": self.shape.radius}
 
 
 class ConvexPolygon:
@@ -104,9 +103,9 @@ class ConvexPolygon:
     def get_integrator(self):
         """Get the hoomd integrator object."""
         mc = hoomd.hpmc.integrate.ConvexPolygon(default_d=0.1, default_a=0.1)
-        mc.shape["S0"] = dict(vertices=np.array(self.shape.vertices)[:,:2])
+        mc.shape["S0"] = dict(vertices=np.array(self.shape.vertices)[:, :2])
         return mc
 
     def get_gsd_shape(self):
         """Get the gsd shape object."""
-        return {'type': 'Polygon', 'vertices': self.shape.vertices[:,:2].tolist(), 'rounding_radius': 0}
+        return {"type": "Polygon", "vertices": self.shape.vertices[:, :2].tolist(), "rounding_radius": 0}

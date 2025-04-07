@@ -22,11 +22,7 @@ class OrderParameterAveQlNear(OrderParameter):
         self.rcut = rcut
 
     def getOrder(self, snap):
-        return np.mean(
-            self.sl.compute(
-                system=snap, neighbors={"num_neighbors": self.kn, "r_max": self.rcut}
-            ).particle_order
-        )
+        return np.mean(self.sl.compute(system=snap, neighbors={"num_neighbors": self.kn, "r_max": self.rcut}).particle_order)
 
 
 # calculate the local Q_l OP (with 2nd shell average) using of nearest neighbors
@@ -37,11 +33,7 @@ class OrderParameterQlNear(OrderParameter):
         self.rcut = rcut
 
     def getOrder(self, snap):
-        return np.mean(
-            self.sl.compute(
-                system=snap, neighbors={"num_neighbors": self.kn, "r_max": self.rcut}
-            ).particle_order
-        )
+        return np.mean(self.sl.compute(system=snap, neighbors={"num_neighbors": self.kn, "r_max": self.rcut}).particle_order)
 
 
 class OrderParameter2DPsi6_minusPsi4(OrderParameter):
@@ -50,19 +42,16 @@ class OrderParameter2DPsi6_minusPsi4(OrderParameter):
         self.p4 = shop.Hexatic(k=4)
 
     def getOrder(self, snap):
-        psi6 = np.abs(
-            np.mean(
-                self.p6.compute(
-                    system=snap, neighbors={"num_neighbors": 6}
-                ).particle_order
-            )
-        )
-        psi4 = np.abs(
-            np.mean(
-                self.p4.compute(
-                    system=snap, neighbors={"num_neighbors": 4}
-                ).particle_order
-            )
-        )
+        psi6 = np.abs(np.mean(self.p6.compute(system=snap, neighbors={"num_neighbors": 6}).particle_order))
+        psi4 = np.abs(np.mean(self.p4.compute(system=snap, neighbors={"num_neighbors": 4}).particle_order))
         return psi6 - psi4
 
+
+class OrderParameter2DPsi_l(OrderParameter):
+    def __init__(self, l):
+        self.l = l
+        self.pl = shop.Hexatic(k=l)
+
+    def getOrder(self, snap):
+        psi = np.abs(np.mean(self.pl.compute(system=snap, neighbors={"num_neighbors": self.l}).particle_order))
+        return psi

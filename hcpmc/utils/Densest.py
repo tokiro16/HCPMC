@@ -3,12 +3,15 @@ import numpy as np
 import datetime
 import hoomd
 
+
 class Densest(FlowProject):
     pass
+
 
 @Densest.label
 def finish(job):
     return job.isfile("trial.gsd")
+
 
 @Densest.post(finish)
 @Densest.operation(directives={"memory": "1g", "walltime": 24})
@@ -40,7 +43,22 @@ def compress(job):
             mode="xb",
         )
         sim.operations.writers.append(gsd_writer)
-        sim.run(0,True)
+        sim.run(0, True)
+        duration = datetime.datetime.now() - start_time
+        formatted_duration = str(duration).split(".")[0]
+        print(
+            f"{formatted_duration}  Starting compress...Initializing... ",
+            flush=True,
+        )
+        # Boxmc
+        Boxmc = hoomd.hpmc.update.BoxMC(trigger=hoomd.trigger.Periodic(1), P=-1)
+        Boxmc.aspect.update({"delta": 0.01, "weight": 2.0})
+        Boxmc.shear.update({"weight": 1.0, "delta": (0.001, 0.001, 0.001)})
+        sim.operations.updaters.append(Boxmc)
+        sim.run(40000)
+        sim.operations.updaters.remove(Boxmc)
+        gsd_writer.flush()
+
         for i in range(len(lgP_target)):
             # Boxmc
             Boxmc = hoomd.hpmc.update.BoxMC(trigger=hoomd.trigger.Periodic(1), P=10 ** lgP_target[i])
