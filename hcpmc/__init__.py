@@ -11,6 +11,8 @@ scipy
 datetime
 shutil
 signac
+signac-flow
+coxeter
 
 """
 
