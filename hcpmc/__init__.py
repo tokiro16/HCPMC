@@ -17,7 +17,7 @@ freud
 datetime
 shutil
 
-mamba install hoomd-blue gsd jupyter numpy matplotlib pandas scipy signac signac-flow coxeter freud
+mamba install hoomd gsd jupyter numpy matplotlib pandas scipy signac signac-flow coxeter freud
 """
 
 from . import initializer
