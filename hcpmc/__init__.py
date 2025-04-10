@@ -4,16 +4,17 @@
 requirement: 
 hoomd-blue >= 5.0.0
 gsd
+jupyter
 numpy
 matplotlib
 pandas
 scipy
-datetime
-shutil
 signac
 signac-flow
 coxeter
 
+datetime
+shutil
 """
 
 from . import initializer
