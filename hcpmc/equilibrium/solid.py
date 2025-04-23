@@ -146,13 +146,14 @@ class Harmonic:
 
         f = gsd.hoomd.open(self.samplename)
         N = f[0].particles.N
-
+        mc.d['S0'] = np.sqrt(1/self.k)
+        mc.a['S0'] = np.sqrt(1/self.k)
         tune = hoomd.hpmc.tune.MoveSize.scale_solver(
             moves=["a", "d"],
             target=0.3,
             trigger=2000,
-            max_translation_move=1,
-            max_rotation_move=1,
+            max_translation_move=0.1,
+            max_rotation_move=0.1,
         )
         sim.operations.tuners.append(tune)
         RD = hoomd.update.RemoveDrift(ref_positions, trigger=1)
