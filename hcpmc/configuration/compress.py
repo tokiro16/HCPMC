@@ -1,7 +1,9 @@
 #yhyang
+# update datetime by Jin Wang.
 #hoomd-version=3.x/4.x
 import hoomd
 import numpy as np
+import datetime
 
 
 class hpmc_compress():
@@ -14,7 +16,7 @@ class hpmc_compress():
         self.sim = sim
         self.mc = mc
 
-    def box_compress(self, delta_d, run_step, particle_volume=1, particle_types=[], shear=True):
+    def box_compress(self, delta_d, run_step, start_time, particle_volume=1, particle_types=[], shear=True):
         """HPMC compress.
 
         Args:
@@ -85,10 +87,12 @@ class hpmc_compress():
             acceptance = self.mc.translate_moves[0]/(self.mc.translate_moves[0] + self.mc.translate_moves[1])
             box_volume = self.sim.state.box.volume
             phi = N * particle_volume / box_volume
+            duration = datetime.datetime.now() - start_time
+            formatted_duration = str(duration).split(".")[0]
             if acceptance > 0.35:
-                print('\racc: %.3f delta_d: %g, compress. box volume: %g phi: %g'%(acceptance, delta_d, box_volume, phi), end='', flush=True)
+                print(f'{formatted_duration} acc: {acceptance:.3f} delta_d: {delta_d}, compress. box volume: {box_volume} phi: {phi}', flush=True)
             elif acceptance < 0.25:
-                print('\racc: %.3f delta_d: %g, expand.   box volume: %g phi: %g'%(acceptance, delta_d, box_volume, phi), end='', flush=True)
+                print(f'{formatted_duration} acc: {acceptance:.3f} delta_d: {delta_d}, expand.   box volume: {box_volume} phi: {phi}', flush=True)
         print(' ')
 
     '''
