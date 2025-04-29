@@ -48,7 +48,10 @@ class Expander:
         sim.operations.integrator = mc
         sim.run(0)
         logger = hoomd.logging.Logger()
-        logger.add(mc, quantities=["type_shapes"])
+        try:
+            logger.add(mc, quantities=["type_shapes"])
+        except:
+            print("no type_shapes")
         pf = sim.state.N_particles / (sim.state.box.volume)
         scale = (pf / packingfraction) ** (1 / 3)
         box0 = sim.state.box

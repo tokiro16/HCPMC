@@ -112,6 +112,14 @@ class Pressure:
         """Get the pressure of a solid composed of hard polyhedron particles."""
         return f"{np.mean(self.pressure)} +/- {np.std(self.pressure) / np.sqrt(len(self.pressure))}"
 
+    def calc_dP_dphi(self,):
+        """Calculate the derivative of pressure using Fluctuation Dissipation theorem."""
+        
+        
+
+class dP_dphi:
+    """Calculate the derivate of pressure of a solid sample composed of hard particles with given particlefactory."""
+
 
 class Harmonic:
     """Calculate the free energy derivative in Harmonic Potential.

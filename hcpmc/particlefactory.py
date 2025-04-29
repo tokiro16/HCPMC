@@ -2,7 +2,7 @@
 """A 'particlefactory' can generate hoomd integrator for given shape.
 
 Now we support the following families:
-Family423, Family323+, TruncatedTetrahedron, SlantedCube
+Family423, Family323+, TruncatedTetrahedron, SlantedCube, DimpledSpere423
 
 
 .. invisible-code-block: python
@@ -263,7 +263,85 @@ class SlantedCube:
         """Get the gsd shape object."""
         return self.shape.gsd_shape_spec
 
-class Anyshape:
+class DimpledSphere423:
+    """Create an instance of any shape particle with the given vertices."""
+    
+    def __init__(self, shape_f):
+        if shape_f < 0 or shape_f > 1:
+            raise ValueError("shape_f must be between 0 and 1")
+        x = np.sqrt(2*(1-shape_f))
+        self.radius = (np.pi*(4/3-(4+x)*(2-x)/2))**(1/3)
+        self.l = x * self.radius
+    
+    def get_integrator(self):
+        """Get the hoomd integrator object."""
+        mc = hoomd.hpmc.integrate.Sphinx(default_d=0.1, default_a=0.1)
+        mc.shape["S0"] = dict(
+            centers=[(0, 0, 0), (self.l, 0, 0),(-self.l, 0, 0),(0,self.l, 0),(0, -self.l, 0),(0,0,self.l),(0,0,-self.l)], 
+            diameters=[self.radius, -self.radius, -self.radius, -self.radius, -self.radius, -self.radius, -self.radius],
+            )
+        return mc
+    
+    def get_symmetries(self):
+        """Get the symmetry operations that are applied to this particle."""
+        symmetries = [
+            [1, 0, 0, 0],
+            [-1, 0, 0, 0],
+            [0.7071, 0.7071, 0, 0],
+            [-0.7071, 0.7071, 0, 0],
+            [0, 1, 0, 0],
+            [0.7071, 0, 0.7071, 0],
+            [-0.7071, 0, 0.7071, 0],
+            [0, 0, 1, 0],
+            [0.7071, 0, 0, 0.7071],
+            [-0.7071, 0, 0, 0.7071],
+            [0, 0, 0, 1],
+            [-0.7071, -0.7071, 0, 0],
+            [0.7071, -0.7071, 0, 0],
+            [0, -1, 0, 0],
+            [-0.7071, 0, -0.7071, 0],
+            [0.7071, 0, -0.7071, 0],
+            [0, 0, -1, 0],
+            [-0.7071, 0, 0, -0.7071],
+            [0.7071, 0, 0, -0.7071],
+            [0, 0, 0, -1],
+            [0.5, 0.5, 0.5, 0.5],
+            [-0.5, 0.5, 0.5, 0.5],
+            [0.5, -0.5, 0.5, 0.5],
+            [-0.5, -0.5, 0.5, 0.5],
+            [0.5, 0.5, -0.5, 0.5],
+            [-0.5, 0.5, -0.5, 0.5],
+            [0.5, 0.5, 0.5, -0.5],
+            [-0.5, 0.5, 0.5, -0.5],
+            [-0.5, -0.5, -0.5, -0.5],
+            [0.5, -0.5, -0.5, -0.5],
+            [-0.5, 0.5, -0.5, -0.5],
+            [0.5, 0.5, -0.5, -0.5],
+            [-0.5, -0.5, 0.5, -0.5],
+            [0.5, -0.5, 0.5, -0.5],
+            [-0.5, -0.5, -0.5, 0.5],
+            [0.5, -0.5, -0.5, 0.5],
+            [0, 0, 0.7071, 0.7071],
+            [0, 0, -0.7071, 0.7071],
+            [0, 0.7071, 0, 0.7071],
+            [0, -0.7071, 0, 0.7071],
+            [0, 0.7071, 0.7071, 0],
+            [0, -0.7071, 0.7071, 0],
+            [0, 0, -0.7071, -0.7071],
+            [0, 0, 0.7071, -0.7071],
+            [0, -0.7071, 0, -0.7071],
+            [0, 0.7071, 0, -0.7071],
+            [0, -0.7071, -0.7071, 0],
+            [0, 0.7071, -0.7071, 0],
+        ]
+        return symmetries
+    
+    def get_gsd_shape(self):
+        """Get the gsd shape object."""
+        print("Warning: DimpledSphere423 does not have a gsd shape object.")
+        return {}
+        
+class ConvexPolyhedron:
     """Create an instance of any shape particle with the given vertices."""
 
     def __init__(self, vertices):

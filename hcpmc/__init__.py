@@ -27,3 +27,4 @@ from . import particlefactory2D
 from . import equilibrium
 from . import umbrella
 from . import OrderParameter
+from . import utils

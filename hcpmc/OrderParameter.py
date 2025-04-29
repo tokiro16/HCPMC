@@ -55,3 +55,18 @@ class OrderParameter2DPsi_l(OrderParameter):
     def getOrder(self, snap):
         psi = np.abs(np.mean(self.pl.compute(system=snap, neighbors={"num_neighbors": self.l}).particle_order))
         return psi
+
+# calculate the Delta_dq2
+class OrderParameterDelta_dq2(OrderParameter):
+    def __init__(self, symmetries):
+        self.sym = symmetries
+
+    def compute_dq2(self, q):
+        return min(np.dot((q - q2), (q - q2)) for q2 in self.symmetries)
+
+    def getOrder(self, snap):
+        qs = snap.particles.orientation
+        dq2 = []
+        for q in qs:
+            dq2.append(self.compute_dq2(q))
+        return np.std(dq2,ddof=1)
