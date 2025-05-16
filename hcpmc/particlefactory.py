@@ -341,6 +341,92 @@ class DimpledSphere423:
         print("Warning: DimpledSphere423 does not have a gsd shape object.")
         return {}
         
+class Rhombic_Dodecahedron:
+    """Create an instance of any shape particle with the given vertices."""
+
+    def __init__(self):
+        temp = coxeter.families.CatalanFamily.get_shape(name="Rhombic Dodecahedron")
+        theta = np.radians(45)
+        cos_theta, sin_theta = np.cos(theta), np.sin(theta)
+        rotation_matrix = np.array([
+            [cos_theta, -sin_theta, 0],
+            [sin_theta,  cos_theta, 0],
+            [0,         0,         1]
+        ])
+        # 对所有顶点应用旋转
+        vertices = temp.vertices @ rotation_matrix.T
+        self.shape = coxeter.shapes.ConvexPolyhedron(vertices)
+        self.shape.volume = 1
+
+    def get_integrator(self):
+        """Get the hoomd integrator object."""
+        mc = hoomd.hpmc.integrate.ConvexPolyhedron(default_d=0.1, default_a=0.1)
+        mc.shape["S0"] = dict(vertices=self.shape.vertices)
+        return mc
+
+    def get_symmetries(self):
+        """Get the symmetry operations that are applied to this particle."""
+        symmetries = [
+            [1, 0, 0, 0],
+            [-1, 0, 0, 0],
+            [0.7071, 0.7071, 0, 0],
+            [-0.7071, 0.7071, 0, 0],
+            [0, 1, 0, 0],
+            [0.7071, 0, 0.7071, 0],
+            [-0.7071, 0, 0.7071, 0],
+            [0, 0, 1, 0],
+            [0.7071, 0, 0, 0.7071],
+            [-0.7071, 0, 0, 0.7071],
+            [0, 0, 0, 1],
+            [-0.7071, -0.7071, 0, 0],
+            [0.7071, -0.7071, 0, 0],
+            [0, -1, 0, 0],
+            [-0.7071, 0, -0.7071, 0],
+            [0.7071, 0, -0.7071, 0],
+            [0, 0, -1, 0],
+            [-0.7071, 0, 0, -0.7071],
+            [0.7071, 0, 0, -0.7071],
+            [0, 0, 0, -1],
+            [0.5, 0.5, 0.5, 0.5],
+            [-0.5, 0.5, 0.5, 0.5],
+            [0.5, -0.5, 0.5, 0.5],
+            [-0.5, -0.5, 0.5, 0.5],
+            [0.5, 0.5, -0.5, 0.5],
+            [-0.5, 0.5, -0.5, 0.5],
+            [0.5, 0.5, 0.5, -0.5],
+            [-0.5, 0.5, 0.5, -0.5],
+            [-0.5, -0.5, -0.5, -0.5],
+            [0.5, -0.5, -0.5, -0.5],
+            [-0.5, 0.5, -0.5, -0.5],
+            [0.5, 0.5, -0.5, -0.5],
+            [-0.5, -0.5, 0.5, -0.5],
+            [0.5, -0.5, 0.5, -0.5],
+            [-0.5, -0.5, -0.5, 0.5],
+            [0.5, -0.5, -0.5, 0.5],
+            [0, 0, 0.7071, 0.7071],
+            [0, 0, -0.7071, 0.7071],
+            [0, 0.7071, 0, 0.7071],
+            [0, -0.7071, 0, 0.7071],
+            [0, 0.7071, 0.7071, 0],
+            [0, -0.7071, 0.7071, 0],
+            [0, 0, -0.7071, -0.7071],
+            [0, 0, 0.7071, -0.7071],
+            [0, -0.7071, 0, -0.7071],
+            [0, 0.7071, 0, -0.7071],
+            [0, -0.7071, -0.7071, 0],
+            [0, 0.7071, -0.7071, 0],
+        ]
+        return symmetries
+
+    def get_gsd_shape(self):
+        """Get the gsd shape object."""
+        return self.shape.gsd_shape_spec
+
+
+
+
+
+
 class ConvexPolyhedron:
     """Create an instance of any shape particle with the given vertices."""
 
